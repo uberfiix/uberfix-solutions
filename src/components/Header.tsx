@@ -1,7 +1,8 @@
 import { Search, MapPin, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { ServiceType } from "@/types/uberfix";
 
-const services = [
+const services: { id: ServiceType | "all"; label: string; icon: string }[] = [
   { id: "all", label: "كل التخصصات", icon: "🔧" },
   { id: "electrical", label: "كهرباء", icon: "⚡" },
   { id: "plumbing", label: "سباكة", icon: "🔧" },
@@ -11,8 +12,8 @@ const services = [
 ];
 
 interface HeaderProps {
-  activeService: string;
-  onServiceChange: (serviceId: string) => void;
+  activeService: ServiceType | "all";
+  onServiceChange: (serviceId: ServiceType | "all") => void;
 }
 
 const Header = ({ activeService, onServiceChange }: HeaderProps) => {

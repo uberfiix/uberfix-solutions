@@ -49,6 +49,60 @@ export type Database = {
           },
         ]
       }
+      branches: {
+        Row: {
+          address: string
+          branch_code: string
+          branch_type: string
+          chain_id: string | null
+          created_at: string
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number
+          longitude: number
+          map_link: string | null
+          name: string
+          name_ar: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          branch_code: string
+          branch_type?: string
+          chain_id?: string | null
+          created_at?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude: number
+          longitude: number
+          map_link?: string | null
+          name: string
+          name_ar?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          branch_code?: string
+          branch_type?: string
+          chain_id?: string | null
+          created_at?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number
+          longitude?: number
+          map_link?: string | null
+          name?: string
+          name_ar?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       file_permissions: {
         Row: {
           can_edit: boolean | null
@@ -149,6 +203,228 @@ export type Database = {
           name?: string
           owner_id?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          rating: number
+          reviewer_id: string | null
+          technician_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          rating: number
+          reviewer_id?: string | null
+          technician_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          reviewer_id?: string | null
+          technician_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_orders: {
+        Row: {
+          branch_id: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          estimated_cost: number | null
+          final_cost: number | null
+          id: string
+          images: string[] | null
+          notes: string | null
+          order_number: string
+          priority: string | null
+          requested_by: string | null
+          scheduled_at: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          technician_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          final_cost?: number | null
+          id?: string
+          images?: string[] | null
+          notes?: string | null
+          order_number: string
+          priority?: string | null
+          requested_by?: string | null
+          scheduled_at?: string | null
+          service_type: Database["public"]["Enums"]["service_type"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          technician_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_cost?: number | null
+          final_cost?: number | null
+          id?: string
+          images?: string[] | null
+          notes?: string | null
+          order_number?: string
+          priority?: string | null
+          requested_by?: string | null
+          scheduled_at?: string | null
+          service_type?: Database["public"]["Enums"]["service_type"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          technician_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technician_locations: {
+        Row: {
+          id: string
+          latitude: number
+          longitude: number
+          recorded_at: string
+          technician_id: string
+        }
+        Insert: {
+          id?: string
+          latitude: number
+          longitude: number
+          recorded_at?: string
+          technician_id: string
+        }
+        Update: {
+          id?: string
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+          technician_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technician_locations_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "technicians"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      technicians: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          phone: string
+          rating: number | null
+          secondary_skills: Database["public"]["Enums"]["service_type"][] | null
+          specialty: Database["public"]["Enums"]["service_type"]
+          status: Database["public"]["Enums"]["technician_status"] | null
+          total_orders: number | null
+          total_reviews: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          phone: string
+          rating?: number | null
+          secondary_skills?:
+            | Database["public"]["Enums"]["service_type"][]
+            | null
+          specialty: Database["public"]["Enums"]["service_type"]
+          status?: Database["public"]["Enums"]["technician_status"] | null
+          total_orders?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          phone?: string
+          rating?: number | null
+          secondary_skills?:
+            | Database["public"]["Enums"]["service_type"][]
+            | null
+          specialty?: Database["public"]["Enums"]["service_type"]
+          status?: Database["public"]["Enums"]["technician_status"] | null
+          total_orders?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -389,7 +665,20 @@ export type Database = {
       vault_hash: { Args: { input: string }; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      order_status:
+        | "pending"
+        | "accepted"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+      service_type:
+        | "electrical"
+        | "plumbing"
+        | "ac"
+        | "carpentry"
+        | "painting"
+        | "general"
+      technician_status: "available" | "busy" | "offline"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -516,6 +805,23 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      order_status: [
+        "pending",
+        "accepted",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+      service_type: [
+        "electrical",
+        "plumbing",
+        "ac",
+        "carpentry",
+        "painting",
+        "general",
+      ],
+      technician_status: ["available", "busy", "offline"],
+    },
   },
 } as const

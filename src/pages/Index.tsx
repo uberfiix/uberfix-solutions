@@ -1,14 +1,89 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Header from "@/components/Header";
 import TechniciansSidebar from "@/components/TechniciansSidebar";
-import MapView from "@/components/MapView";
+import MapboxMap from "@/components/MapboxMap";
 import BottomNavigation from "@/components/BottomNavigation";
 import { Helmet } from "react-helmet";
+import { useBranches } from "@/hooks/useBranches";
+import { useTechnicians } from "@/hooks/useTechnicians";
+import type { MapMarker, ServiceType } from "@/types/uberfix";
+
+// Import branch data for demo
+import branchesData from "@/assets/data/branchs-maps.js";
 
 const Index = () => {
-  const [activeService, setActiveService] = useState("all");
+  const [activeService, setActiveService] = useState<ServiceType | "all">("all");
   const [activeTab, setActiveTab] = useState("map");
   const [selectedTechnician, setSelectedTechnician] = useState<string | null>(null);
+
+  // Fetch data from Supabase
+  const { data: dbBranches, isLoading: branchesLoading } = useBranches();
+  const { data: technicians, isLoading: techniciansLoading } = useTechnicians({
+    specialty: activeService === "all" ? "all" : activeService
+  });
+
+  // Convert branches data to MapMarker format
+  const branchMarkers = useMemo((): MapMarker[] => {
+    // If we have data from DB, use it
+    if (dbBranches && dbBranches.length > 0) {
+      return dbBranches.map(branch => ({
+        id: branch.id,
+        type: 'branch' as const,
+        name: branch.name_ar || branch.name,
+        location: branch.address,
+        latitude: Number(branch.latitude),
+        longitude: Number(branch.longitude),
+        icon: branch.icon_url
+      }));
+    }
+
+    // Otherwise use the static data from branchs-maps.js
+    const allBranches = branchesData.flat();
+    return allBranches.slice(0, 100).map((branch: any) => ({
+      id: branch.id,
+      type: 'branch' as const,
+      name: branch.branch,
+      location: branch.address,
+      latitude: branch.latitude,
+      longitude: branch.longitude,
+      icon: branch.icon
+    }));
+  }, [dbBranches]);
+
+  // Convert technicians to MapMarker format
+  const technicianMarkers = useMemo((): MapMarker[] => {
+    if (!technicians || technicians.length === 0) {
+      // Mock technicians for demo
+      return [
+        { id: "t1", type: "technician", name: "أحمد حسين", specialty: "plumbing", location: "المعادي", latitude: 30.0444, longitude: 31.2357, status: "available", rating: 4.9 },
+        { id: "t2", type: "technician", name: "محمد سعيد", specialty: "electrical", location: "مصر الجديدة", latitude: 30.0900, longitude: 31.3400, status: "available", rating: 4.8 },
+        { id: "t3", type: "technician", name: "خالد إبراهيم", specialty: "ac", location: "مدينة نصر", latitude: 30.0500, longitude: 31.3600, status: "busy", rating: 4.7 },
+        { id: "t4", type: "technician", name: "عمر حسن", specialty: "carpentry", location: "المهندسين", latitude: 30.0600, longitude: 31.2000, status: "available", rating: 4.6 },
+      ];
+    }
+
+    return technicians
+      .filter(t => t.latitude && t.longitude)
+      .map(tech => ({
+        id: tech.id,
+        type: 'technician' as const,
+        name: tech.name,
+        specialty: tech.specialty as ServiceType,
+        location: '',
+        latitude: Number(tech.latitude),
+        longitude: Number(tech.longitude),
+        status: tech.status as MapMarker['status'],
+        rating: Number(tech.rating)
+      }));
+  }, [technicians]);
+
+  const handleMarkerClick = (marker: MapMarker) => {
+    if (marker.type === "technician") {
+      setSelectedTechnician(marker.id);
+    }
+  };
+
+  const isLoading = branchesLoading || techniciansLoading;
 
   return (
     <>
@@ -30,16 +105,17 @@ const Index = () => {
           <TechniciansSidebar
             selectedTechnicianId={selectedTechnician}
             onSelectTechnician={setSelectedTechnician}
+            activeService={activeService}
           />
 
           {/* Map Area */}
           <div className="flex-1">
-            <MapView 
-              onMarkerClick={(marker) => {
-                if (marker.type === "technician") {
-                  setSelectedTechnician(marker.id);
-                }
-              }}
+            <MapboxMap 
+              branches={branchMarkers}
+              technicians={technicianMarkers}
+              onMarkerClick={handleMarkerClick}
+              selectedMarkerId={selectedTechnician}
+              isLoading={isLoading}
             />
           </div>
         </main>

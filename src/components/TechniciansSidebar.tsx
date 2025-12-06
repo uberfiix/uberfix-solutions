@@ -1,100 +1,201 @@
+import { useState } from "react";
+import { Search, Filter, Users, Loader2 } from "lucide-react";
 import TechnicianCard, { Technician } from "./TechnicianCard";
-import { Users } from "lucide-react";
+import { useTechnicians } from "@/hooks/useTechnicians";
+import type { ServiceType } from "@/types/uberfix";
 
+// Mock data for demo (when no real data exists)
 const mockTechnicians: Technician[] = [
   {
-    id: "1",
-    name: "أحمد حسين",
-    specialty: "فني سباك",
-    rating: 5,
-    reviewCount: 127,
+    id: "t1",
+    name: "أحمد محمود حسين",
+    phone: "+201234567890",
+    specialty: "plumbing",
     status: "available",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
+    rating: 4.9,
+    total_reviews: 156,
+    total_orders: 234,
+    is_verified: true,
+    is_active: true,
+    latitude: 30.0444,
+    longitude: 31.2357
   },
   {
-    id: "2",
-    name: "محمود سعد",
-    specialty: "اسطى نجار",
-    rating: 4,
-    reviewCount: 89,
-    status: "busy",
-    availableIn: "40 دقيقة",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    id: "t2",
+    name: "محمد سعيد العزب",
+    phone: "+201234567891",
+    specialty: "electrical",
+    status: "available",
+    rating: 4.8,
+    total_reviews: 89,
+    total_orders: 145,
+    is_verified: true,
+    is_active: true,
+    latitude: 30.0500,
+    longitude: 31.2400
   },
   {
-    id: "3",
-    name: "محمد علي",
-    specialty: "فني كهرباء",
-    rating: 4,
-    reviewCount: 156,
-    status: "busy",
-    availableIn: "ساعة",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    id: "4",
+    id: "t3",
     name: "خالد إبراهيم",
-    specialty: "فني تكييف",
-    rating: 5,
-    reviewCount: 203,
-    status: "available",
-    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&h=100&fit=crop&crop=face",
+    phone: "+201234567892",
+    specialty: "ac",
+    status: "busy",
+    rating: 4.7,
+    total_reviews: 67,
+    total_orders: 98,
+    is_verified: false,
+    is_active: true,
+    latitude: 30.0600,
+    longitude: 31.2500
   },
   {
-    id: "5",
-    name: "عمر حسن",
-    specialty: "فني دهانات",
-    rating: 4,
-    reviewCount: 67,
+    id: "t4",
+    name: "عمر حسن الشريف",
+    phone: "+201234567893",
+    specialty: "carpentry",
+    status: "available",
+    rating: 4.6,
+    total_reviews: 45,
+    total_orders: 78,
+    is_verified: true,
+    is_active: true,
+    latitude: 30.0700,
+    longitude: 31.2600
+  },
+  {
+    id: "t5",
+    name: "ياسر عبد الرحمن",
+    phone: "+201234567894",
+    specialty: "painting",
     status: "offline",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    id: "6",
-    name: "ياسر محمود",
-    specialty: "فني سباك",
-    rating: 5,
-    reviewCount: 94,
-    status: "available",
-    image: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100&fit=crop&crop=face",
-  },
+    rating: 4.5,
+    total_reviews: 34,
+    total_orders: 56,
+    is_verified: false,
+    is_active: true,
+    latitude: 30.0800,
+    longitude: 31.2700
+  }
 ];
 
 interface TechniciansSidebarProps {
   selectedTechnicianId: string | null;
-  onSelectTechnician: (id: string) => void;
+  onSelectTechnician: (id: string | null) => void;
+  activeService?: ServiceType | 'all';
 }
 
-const TechniciansSidebar = ({ selectedTechnicianId, onSelectTechnician }: TechniciansSidebarProps) => {
-  const availableCount = mockTechnicians.filter(t => t.status === "available").length;
+const TechniciansSidebar = ({ 
+  selectedTechnicianId, 
+  onSelectTechnician,
+  activeService = 'all'
+}: TechniciansSidebarProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+
+  const { data: dbTechnicians, isLoading } = useTechnicians({
+    specialty: activeService,
+    status: showAvailableOnly ? 'available' : 'all'
+  });
+
+  // Use mock data if no real data, and filter by specialty
+  const baseTechnicians: Technician[] = (dbTechnicians && dbTechnicians.length > 0) 
+    ? dbTechnicians.map(t => ({
+        id: t.id,
+        name: t.name,
+        phone: t.phone,
+        avatar_url: t.avatar_url || undefined,
+        specialty: t.specialty as ServiceType,
+        status: t.status as Technician['status'],
+        rating: Number(t.rating),
+        total_reviews: t.total_reviews,
+        total_orders: t.total_orders,
+        is_verified: t.is_verified,
+        is_active: t.is_active,
+        latitude: t.latitude ? Number(t.latitude) : undefined,
+        longitude: t.longitude ? Number(t.longitude) : undefined
+      }))
+    : mockTechnicians.filter(t => 
+        activeService === 'all' || t.specialty === activeService
+      );
+
+  const filteredTechnicians = baseTechnicians.filter(tech => {
+    const matchesSearch = tech.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesAvailability = !showAvailableOnly || tech.status === "available";
+    return matchesSearch && matchesAvailability;
+  });
+
+  const availableCount = baseTechnicians.filter(t => t.status === "available").length;
 
   return (
-    <aside className="w-80 bg-background border-l border-border h-full overflow-hidden flex flex-col">
+    <aside className="w-80 bg-card border-l border-border flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-border bg-card">
-        <div className="flex items-center justify-between">
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <Users className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <h2 className="font-bold text-foreground">الخدمات المتاحة</h2>
+            <Users className="w-5 h-5 text-primary" />
+            <h2 className="font-bold text-foreground">الفنيين</h2>
           </div>
-          <span className="bg-primary/10 text-primary text-sm font-semibold px-2 py-1 rounded-md">
-            {availableCount} متاح
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {availableCount} متاح
+            </span>
+            <span className="w-2 h-2 rounded-full bg-status-available animate-pulse" />
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="ابحث عن فني..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-10 pr-10 pl-10 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+          <button 
+            onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+            className={`absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors ${
+              showAvailableOnly ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* Technicians List */}
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {mockTechnicians.map((technician) => (
-          <TechnicianCard
-            key={technician.id}
-            technician={technician}
-            isSelected={selectedTechnicianId === technician.id}
-            onSelect={() => onSelectTechnician(technician.id)}
-          />
-        ))}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground mt-2">جاري التحميل...</span>
+          </div>
+        ) : filteredTechnicians.length === 0 ? (
+          <div className="text-center py-8">
+            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">لا يوجد فنيين متاحين</p>
+          </div>
+        ) : (
+          filteredTechnicians.map((technician) => (
+            <TechnicianCard
+              key={technician.id}
+              technician={technician}
+              isSelected={selectedTechnicianId === technician.id}
+              onSelect={() => onSelectTechnician(
+                selectedTechnicianId === technician.id ? null : technician.id
+              )}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Footer Stats */}
+      <div className="p-3 border-t border-border bg-muted/30">
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>إجمالي الفنيين: {baseTechnicians.length}</span>
+          <span>المتاحين: {availableCount}</span>
+        </div>
       </div>
     </aside>
   );
