@@ -1242,3 +1242,4 @@ const branches = [
     }
  ]
 ]
+export default branches;
