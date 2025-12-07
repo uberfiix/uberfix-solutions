@@ -3,14 +3,46 @@ import { Button } from "@/components/ui/button";
 import type { ServiceType, TechnicianStatus } from "@/types/uberfix";
 import { SERVICE_LABELS, STATUS_LABELS } from "@/types/uberfix";
 
-// Import technician icons
+// Import all 25 technician icons
 import tec01 from "@/assets/icons/tec-01.png";
 import tec02 from "@/assets/icons/tec-02.png";
 import tec03 from "@/assets/icons/tec-03.png";
 import tec04 from "@/assets/icons/tec-04.png";
 import tec05 from "@/assets/icons/tec-05.png";
+import tec06 from "@/assets/icons/tec-06.png";
+import tec07 from "@/assets/icons/tec-07.png";
+import tec08 from "@/assets/icons/tec-08.png";
+import tec09 from "@/assets/icons/tec-09.png";
+import tec10 from "@/assets/icons/tec-10.png";
+import tec11 from "@/assets/icons/tec-11.png";
+import tec12 from "@/assets/icons/tec-12.png";
+import tec13 from "@/assets/icons/tec-13.png";
+import tec14 from "@/assets/icons/tec-14.png";
+import tec15 from "@/assets/icons/tec-15.png";
+import tec16 from "@/assets/icons/tec-16.png";
+import tec17 from "@/assets/icons/tec-17.png";
+import tec18 from "@/assets/icons/tec-18.png";
+import tec19 from "@/assets/icons/tec-19.png";
+import tec20 from "@/assets/icons/tec-20.png";
+import tec21 from "@/assets/icons/tec-21.png";
+import tec22 from "@/assets/icons/tec-22.png";
+import tec23 from "@/assets/icons/tec-23.png";
+import tec24 from "@/assets/icons/tec-24.png";
+import tec25 from "@/assets/icons/tec-25.png";
 
-const technicianIcons = [tec01, tec02, tec03, tec04, tec05];
+export const technicianIcons = [
+  tec01, tec02, tec03, tec04, tec05,
+  tec06, tec07, tec08, tec09, tec10,
+  tec11, tec12, tec13, tec14, tec15,
+  tec16, tec17, tec18, tec19, tec20,
+  tec21, tec22, tec23, tec24, tec25
+];
+
+export const getTechnicianIcon = (technicianId: string): string => {
+  const numericPart = technicianId.replace(/[^0-9]/g, '');
+  const index = numericPart ? parseInt(numericPart.slice(-2) || '0') % technicianIcons.length : 0;
+  return technicianIcons[index];
+};
 
 export interface Technician {
   id: string;
