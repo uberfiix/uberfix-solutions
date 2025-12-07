@@ -4,6 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { Navigation, Loader2 } from 'lucide-react';
 import type { MapMarker, ServiceType, TechnicianStatus } from '@/types/uberfix';
 import { SERVICE_LABELS, STATUS_LABELS } from '@/types/uberfix';
+import { getTechnicianIcon } from './TechnicianCard';
+import { useAllTechniciansTracking } from '@/hooks/useTechnicianTracking';
 
 // Mapbox token from env
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
@@ -27,6 +29,9 @@ const MapboxMap = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  
+  // Real-time technician tracking
+  const { locations: liveLocations } = useAllTechniciansTracking(mapLoaded);
 
   // Initialize map
   useEffect(() => {
@@ -58,7 +63,7 @@ const MapboxMap = ({
     markersRef.current = [];
   }, []);
 
-  // Create marker element
+  // Create marker element with custom technician icons
   const createMarkerElement = useCallback((marker: MapMarker, isSelected: boolean) => {
     const el = document.createElement('div');
     el.className = 'marker-container';
@@ -67,17 +72,22 @@ const MapboxMap = ({
     const statusColor = marker.status === 'available' ? '#10B981' : 
                        marker.status === 'busy' ? '#EF4444' : '#6B7280';
     
+    // Use custom technician icon based on ID
+    const markerIcon = isTechnician 
+      ? getTechnicianIcon(marker.id)
+      : (marker.icon || '/branch-marker.png');
+    
     el.innerHTML = `
       <div class="relative cursor-pointer transition-transform duration-200 ${isSelected ? 'scale-125' : 'hover:scale-110'}">
         <img 
-          src="${marker.icon || (isTechnician ? '/technician-marker.png' : '/branch-marker.png')}"
+          src="${markerIcon}"
           alt="${marker.name}"
-          class="w-10 h-12 object-contain drop-shadow-lg"
+          class="w-12 h-12 object-contain drop-shadow-lg rounded-full ${isTechnician ? 'border-2 border-white shadow-lg' : ''}"
           onerror="this.src='https://api.iconify.design/mdi:map-marker.svg?color=%230F4C81'"
         />
         ${isTechnician ? `
           <div 
-            class="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white"
+            class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white animate-pulse"
             style="background-color: ${statusColor}"
           ></div>
         ` : ''}
@@ -132,13 +142,26 @@ const MapboxMap = ({
     }
   }, []);
 
-  // Update markers when data changes
+  // Update markers when data changes or live locations update
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
     clearMarkers();
 
-    const allMarkers = [...branches, ...technicians];
+    // Update technicians with live locations
+    const updatedTechnicians = technicians.map((tech) => {
+      const liveLocation = liveLocations.get(tech.id);
+      if (liveLocation) {
+        return {
+          ...tech,
+          latitude: liveLocation.latitude,
+          longitude: liveLocation.longitude
+        };
+      }
+      return tech;
+    });
+
+    const allMarkers = [...branches, ...updatedTechnicians];
     
     allMarkers.forEach((marker) => {
       const isSelected = marker.id === selectedMarkerId;
@@ -161,7 +184,7 @@ const MapboxMap = ({
 
       markersRef.current.push(mapMarker);
     });
-  }, [branches, technicians, mapLoaded, selectedMarkerId, clearMarkers, createMarkerElement, createPopupContent, onMarkerClick]);
+  }, [branches, technicians, mapLoaded, selectedMarkerId, liveLocations, clearMarkers, createMarkerElement, createPopupContent, onMarkerClick]);
 
   // Fly to selected marker
   useEffect(() => {
