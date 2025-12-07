@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import TechniciansSidebar from "@/components/TechniciansSidebar";
 import MapboxMap from "@/components/MapboxMap";
@@ -7,6 +8,8 @@ import { Helmet } from "react-helmet";
 import { useBranches } from "@/hooks/useBranches";
 import { useTechnicians } from "@/hooks/useTechnicians";
 import type { MapMarker, ServiceType } from "@/types/uberfix";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 // Import branch data for demo
 import branchesData from "@/assets/data/branchs-maps.js";
@@ -109,7 +112,7 @@ const Index = () => {
           />
 
           {/* Map Area */}
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <MapboxMap 
               branches={branchMarkers}
               technicians={technicianMarkers}
@@ -117,6 +120,14 @@ const Index = () => {
               selectedMarkerId={selectedTechnician}
               isLoading={isLoading}
             />
+            
+            {/* Floating Action Button */}
+            <Link to="/new-request" className="absolute bottom-6 left-6 z-10">
+              <Button size="lg" className="gradient-primary shadow-elevated h-14 px-6 gap-2 text-lg">
+                <Plus className="h-5 w-5" />
+                طلب خدمة
+              </Button>
+            </Link>
           </div>
         </main>
 
