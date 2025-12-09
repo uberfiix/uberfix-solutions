@@ -1,1 +1,7 @@
 project_id = "khwbmibwmtzotyncfhyt"
+
+[functions.get-nearby-technicians]
+verify_jwt = false
+
+[functions.create-service-request]
+verify_jwt = false
