@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import TechniciansSidebar from "@/components/TechniciansSidebar";
 import MapboxMap from "@/components/MapboxMap";
@@ -7,9 +7,10 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { Helmet } from "react-helmet";
 import { useBranches } from "@/hooks/useBranches";
 import { useTechnicians } from "@/hooks/useTechnicians";
+import { useAuth } from "@/contexts/AuthContext";
 import type { MapMarker, ServiceType } from "@/types/uberfix";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, LogIn, LogOut, User } from "lucide-react";
 
 // Import branch data for demo
 import branchesData from "@/assets/data/branchs-maps.js";
@@ -18,7 +19,8 @@ const Index = () => {
   const [activeService, setActiveService] = useState<ServiceType | "all">("all");
   const [activeTab, setActiveTab] = useState("map");
   const [selectedTechnician, setSelectedTechnician] = useState<string | null>(null);
-
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   // Fetch data from Supabase
   const { data: dbBranches, isLoading: branchesLoading } = useBranches();
   const { data: technicians, isLoading: techniciansLoading } = useTechnicians({
@@ -121,13 +123,37 @@ const Index = () => {
               isLoading={isLoading}
             />
             
-            {/* Floating Action Button */}
-            <Link to="/new-request" className="absolute bottom-6 left-6 z-10">
-              <Button size="lg" className="gradient-primary shadow-elevated h-14 px-6 gap-2 text-lg">
-                <Plus className="h-5 w-5" />
-                طلب خدمة
-              </Button>
-            </Link>
+            {/* Auth & Action Buttons */}
+            <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-3">
+              {user ? (
+                <>
+                  <Link to="/new-request">
+                    <Button size="lg" className="gradient-primary shadow-elevated h-14 px-6 gap-2 text-lg w-full">
+                      <Plus className="h-5 w-5" />
+                      طلب خدمة
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => signOut()}
+                    className="gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    تسجيل الخروج
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="lg"
+                  className="gradient-primary shadow-elevated h-14 px-6 gap-2 text-lg"
+                  onClick={() => navigate('/auth')}
+                >
+                  <LogIn className="h-5 w-5" />
+                  تسجيل الدخول
+                </Button>
+              )}
+            </div>
           </div>
         </main>
 
