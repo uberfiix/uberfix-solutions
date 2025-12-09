@@ -117,7 +117,7 @@ export const useAllTechniciansTracking = (enabled: boolean = true) => {
           },
           (payload) => {
             if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-              const tech = payload.new as any;
+              const tech = payload.new as { id: string; latitude: number | null; longitude: number | null; is_active: boolean; updated_at: string };
               if (tech.latitude && tech.longitude && tech.is_active) {
                 setLocations((prev) => {
                   const newMap = new Map(prev);
@@ -131,7 +131,7 @@ export const useAllTechniciansTracking = (enabled: boolean = true) => {
                 });
               }
             } else if (payload.eventType === 'DELETE') {
-              const tech = payload.old as any;
+              const tech = payload.old as { id: string };
               setLocations((prev) => {
                 const newMap = new Map(prev);
                 newMap.delete(tech.id);
