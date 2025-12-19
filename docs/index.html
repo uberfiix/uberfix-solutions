@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>أوبرفيكس — تطبيق صيانة ومتابعة أعمال المعمارية</title>
+  <meta name="description" content="أوبرفيكس - الحل الذكي لخدمات الصيانة المعمارية: طلب فنيين متخصصين، متابعة حالات الصيانة، جداول زمنية واضحة، وضمان جودة." />
+  <meta name="theme-color" content="#0d9488" />
+
+  <!-- Structured data for app (عدل الروابط/معرفات التطبيقات حسب الحاجة) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    "name": "Uberfix",
+    "description": "تطبيق لخدمات الصيانة المعمارية: صيانة المنشآت، تشطيب، وإصلاحات سريعة مع فريق معتمد.",
+    "applicationCategory": "Utilities",
+    "operatingSystem": "iOS, Android",
+    "url": "https://uberfix.example.com",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "1243"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "AED"
+    }
+  }
+  </script>
+
+  <!-- Fonts (اختياري) -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --accent:#0d9488;
+      --accent-dark:#0b7a6f;
+      --muted:#6b7280;
+      --bg:#f8fafb;
+      --card:#ffffff;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Cairo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,#f8fafb 0%, #ffffff 100%);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.5;
+    }
+    header{
+      padding:28px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      text-decoration:none;
+      color:inherit;
+    }
+    .logo{
+      width:56px;height:56px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+      color:#fff;font-weight:700;font-size:20px;
+      box-shadow:0 6px 18px rgba(13,148,136,0.18);
+    }
+    .brand h1{font-size:18px;margin:0}
+    .nav{
+      display:flex;gap:14px;align-items:center;
+    }
+    .btn{
+      background:var(--accent);color:#fff;padding:10px 16px;border-radius:10px;
+      text-decoration:none;font-weight:600;box-shadow:0 6px 18px rgba(13,148,136,0.12);
+    }
+
+    /* Hero */
+    .hero{
+      max-width:1200px;margin:12px auto 0;padding:24px 20px;
+      display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center;
+    }
+    .hero .content h2{
+      margin:0 0 12px 0;font-size:32px;
+      color:#07203a;
+    }
+    .hero p{margin:0 0 20px;color:var(--muted)}
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+    .download-btn{display:inline-flex;gap:10px;align-items:center;padding:10px 14px;background:#111827;color:#fff;border-radius:10px;text-decoration:none;font-weight:600}
+    .secondary{background:transparent;border:2px solid #e6eef2;color:#07203a;padding:10px 14px;border-radius:10px;text-decoration:none}
+
+    /* Phone card */
+    .phone-card{
+      background:linear-gradient(180deg,#ffffff, #f3f9f8);
+      border-radius:20px;padding:20px;
+      box-shadow:0 18px 40px rgba(7,34,58,0.08);
+      display:flex;flex-direction:column;align-items:center;
+    }
+    .phone-mock{
+      width:220px;height:460px;background:linear-gradient(180deg,#eafff9,#ffffff);
+      border-radius:28px;border:12px solid #f6fffd;box-shadow:inset 0 1px 0 rgba(255,255,255,0.6);
+      display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    }
+    .screenshot{width:196px;height:420px;background:url('https://images.unsplash.com/photo-1581093448792-2b6c3a4a2b5b?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=placeholder') center/cover;border-radius:16px}
+
+    /* features */
+    .features{max-width:1200px;margin:36px auto;padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 8px 24px rgba(15,23,42,0.04)}
+    .card h3{margin:0 0 8px;font-size:18px}
+    .muted{color:var(--muted);font-size:14px}
+
+    /* Steps */
+    .steps{max-width:980px;margin:28px auto;padding:20px}
+    .step-list{display:flex;flex-direction:column;gap:12px}
+    .step{display:flex;gap:12px;align-items:flex-start}
+    .step .num{min-width:44px;height:44px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .faq{max-width:980px;margin:28px auto;padding:20px}
+
+    /* footer */
+    footer{margin-top:44px;padding:28px 20px;background:linear-gradient(180deg,#ffffff,#f8fafb)}
+    .footer-inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+    .socials{display:flex;gap:10px;align-items:center}
+
+    /* responsive */
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr; text-align:right}
+      .phone-card{order: -1;}
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="brand" href="#">
+      <div class="logo" aria-hidden="true">UB</div>
+      <div>
+        <h1>أوبرفيكس</h1>
+        <div style="font-size:12px;color:var(--muted)">خدمات الصيانة المعمارية الذكية</div>
+      </div>
+    </a>
+
+    <nav class="nav" aria-label="روابط">
+      <a class="secondary" href="#features">المزايا</a>
+      <a class="secondary" href="#how">كيف يعمل</a>
+      <a class="btn" href="#download">حمل التطبيق</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="content">
+        <h2 id="hero-title">صيانة معمارية موثوقة — بسرعة، بدقّة، وبمتابعة مبسطة</h2>
+        <p>أوبرفيكس يربطك بفريق فنيين معتمدين لأعمال الصيانة المعمارية الداخلية والخارجية، مع جدول أعمال، تقارير صور وفيديو، وضمان جودة لكل عملية.</p>
+
+        <div class="cta-row">
+          <a class="download-btn" id="download" href="#" aria-label="تحميل من جوجل بلاي">
+            <!-- simple icon -->
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="transform:scaleX(-1)"><path d="M4 4l16 8-16 8V4z" fill="#fff"/></svg>
+            تحميل للأندرويد
+          </a>
+          <a class="download-btn" href="#" aria-label="تحميل من آب ستور" style="background:#111827">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C10.6 2 9.6 2.7 8.9 3.3C8.2 3.9 7.4 5 7.4 6.5C7.4 8 8.1 9 8.9 9.6C9.7 10.2 10.9 10.9 12 10.9C13.1 10.9 14.3 10.2 15.1 9.6C15.9 9 16.6 8 16.6 6.5C16.6 5 15.8 3.9 15.1 3.3C14.4 2.7 13.4 2 12 2Z" fill="#fff"/></svg>
+            تحميل للآيفون
+          </a>
+          <a class="secondary" href="#contact">تواصل معنا</a>
+        </div>
+
+        <div style="margin-top:18px;color:var(--muted);font-size:13px">خدمة عملاء 24/7 — مناطق تغطية: المدن الكبرى</div>
+      </div>
+
+      <aside class="phone-card" aria-hidden="true">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">معاينة التطبيق</div>
+        <div class="phone-mock" role="img" aria-label="لقطة شاشة تطبيق أوبرفيكس">
+          <div class="screenshot"></div>
+        </div>
+        <div style="margin-top:12px;color:var(--muted);font-size:13px">لوحة طلبات، تقييم فني، ومتابعة تقدم العمل</div>
+      </aside>
+    </section>
+
+    <section id="features" class="features" aria-labelledby="features-title">
+      <h2 id="features-title" style="grid-column:1/-1;margin:0;padding:6px 0 12px 0">مزايا أوبرفيكس</h2>
+
+      <div class="card">
+        <h3>فنيون معتمدون</h3>
+        <p class="muted">فريق مختار، فحوصات جودة، وسجلات خبرات لكل فني.</p>
+      </div>
+
+      <div class="card">
+        <h3>تتبع ورفع تقارير</h3>
+        <p class="muted">صور وفيديو وتقارير يومية لحالة العمل، تسليم شفاف للعملاء.</p>
+      </div>
+
+      <div class="card">
+        <h3>حجز سريع ومواعيد مرنة</h3>
+        <p class="muted">اختر الوقت المناسب، واحصل على تأكيد فوري ومتابعة تلقائية.</p>
+      </div>
+
+      <div class="card">
+        <h3>عروض أسعار فورية</h3>
+        <p class="muted">تقدير تكلفة مبدئي بناءً على وصف المشكلة وصور مرفقة.</p>
+      </div>
+
+      <div class="card">
+        <h3>ضمان جودة</h3>
+        <p class="muted">فترات ضمان على الأعمال والتوصيات للصيانة المستقبلية.</p>
+      </div>
+
+      <div class="card">
+        <h3>دعم فني 24/7</h3>
+        <p class="muted">خط مساعدة ومتابعة حالات الطوارئ على مدار الساعة.</p>
+      </div>
+    </section>
+
+    <section id="how" class="steps" aria-labelledby="how-title">
+      <h2 id="how-title">كيف يعمل التطبيق</h2>
+      <div class="step-list">
+        <div class="step card">
+          <div class="num">1</div>
+          <div>
+            <h3 style="margin:0 0 6px 0">أخبرنا بالمشكلة</h3>
+            <p class="muted">وصف سريع + صور أو فيديو يساعدنا في تقدير الخدمة.</p>
+          </div>
+        </div>
+
+        <div class="step card">
+          <div class="num">2</div>
+          <div>
+            <h3 style="margin:0 0 6px 0">احصل على عرض سعر وجدول</h3>
+            <p class="muted">عرض سعر شفاف ومقترح مواعيد للتنفيذ.</p>
+          </div>
+        </div>
+
+        <div class="step card">
+          <div class="num">3</div>
+          <div>
+            <h3 style="margin:0 0 6px 0">متابعة يومية وتسليم</h3>
+            <p class="muted">تحديثات يومية، تقارير صور، وضمان بعد التسليم.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">أسئلة شائعة</h2>
+      <div class="card" style="padding:16px;">
+        <h3 style="margin:0 0 6px 0">ما مناطق التغطية؟</h3>
+        <p class="muted">نغطي المدن الكبرى ونوسّع الشبكة تدريجيًا — يمكنك التحقق من التغطية عبر التطبيق.</p>
+
+        <h3 style="margin:14px 0 6px 0">هل يوجد ضمان على الأعمال؟</h3>
+        <p class="muted">نعم — جميع الأعمال المرافقة بعقود مختصرة وضمانات حسب نوع الخدمة.</p>
+      </div>
+    </section>
+
+    <section id="contact" style="max-width:1000px;margin:28px auto;padding:20px;">
+      <div class="card" style="display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start">
+        <div>
+          <h2 style="margin-top:0">تواصل معنا</h2>
+          <p class="muted">هل لديك عقد، طلب طارئ، أو استفسار؟ أرسل وصفًا وسنعود إليك خلال ساعات.</p>
+
+          <!-- نموذج بسيط (تابع التعليمات في تعليق) -->
+          <form id="contact-form" onsubmit="handleSubmit(event)" novalidate>
+            <div style="display:flex;gap:8px;flex-direction:column">
+              <label style="font-weight:600">الاسم</label>
+              <input id="name" type="text" placeholder="اسمك" required style="padding:10px;border-radius:10px;border:1px solid #e6eef2" />
+              <label style="font-weight:600">البريد الإلكتروني / الهاتف</label>
+              <input id="contact" type="text" placeholder="البريد أو رقم الجوال" required style="padding:10px;border-radius:10px;border:1px solid #e6eef2" />
+              <label style="font-weight:600">وصف موجز للمشكلة</label>
+              <textarea id="message" placeholder="اكتب وصفًا، أرفق صورًا عند الحاجة" rows="4" style="padding:10px;border-radius:10px;border:1px solid #e6eef2"></textarea>
+              <div style="display:flex;gap:10px">
+                <button class="btn" type="submit">إرسال</button>
+                <a class="secondary" href="mailto:contact@uberfix.example.com">أو راسلنا عبر الإيميل</a>
+              </div>
+              <div id="form-msg" style="color:var(--muted);font-size:13px;margin-top:6px"></div>
+            </div>
+          </form>
+        </div>
+
+        <div style="padding:8px;display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="padding:12px">
+            <strong>مكاتبنا</strong>
+            <p class="muted" style="margin:6px 0 0 0">الرياض • جدة • دبي</p>
+          </div>
+
+          <div class="card" style="padding:12px">
+            <strong>دعم 24/7</strong>
+            <p class="muted" style="margin:6px 0 0 0">هاتف: +966 5X XXX XXXX<br/>إيميل: contact@uberfix.example.com</p>
+          </div>
+
+          <div class="card" style="padding:12px">
+            <strong>روابط سريعة</strong>
+            <p class="muted" style="margin:6px 0 0 0"><a href="#features">المزايا</a> • <a href="#how">كيف يعمل</a> • <a href="#download">تحميل التطبيق</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="logo" style="width:44px;height:44px;font-size:16px">UB</div>
+          <div>
+            <div style="font-weight:700">أوبرفيكس</div>
+            <div class="muted" style="font-size:13px">حلول الصيانة المعمارية الذكية</div>
+          </div>
+        </div>
+
+        <div class="socials">
+          <a href="#" aria-label="فيسبوك" style="text-decoration:none;color:var(--muted)">فيسبوك</a>
+          <a href="#" aria-label="إنستغرام" style="text-decoration:none;color:var(--muted)">إنستغرام</a>
+          <a href="#" aria-label="لينكدإن" style="text-decoration:none;color:var(--muted)">لينكدإن</a>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #eef6f6;padding-top:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+        <div class="muted">© 2025 أوبرفيكس. كل الحقوق محفوظة.</div>
+        <div>
+          <a href="#" class="muted" style="margin-left:10px;text-decoration:none">الشروط</a>
+          <a href="#" class="muted" style="margin-left:10px;text-decoration:none">الخصوصية</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // نموذج بسيط: يرسل عبر mailto كنسخة احتياطية. استبدل بواجهة API فعلية عند النشر.
+    function handleSubmit(e){
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const contact = document.getElementById('contact').value.trim();
+      const message = document.getElementById('message').value.trim();
+      const msgEl = document.getElementById('form-msg');
+
+      if(!name || !contact || !message){
+        msgEl.textContent = "يرجى ملء جميع الحقول.";
+        return;
+      }
+
+      // مفتاح هنا: استبدل الرابط أدناه بواجهة API حقيقية أو خدمة Formspree / Netlify Forms
+      // مثال: fetch('/api/contact', { method:'POST', body: JSON.stringify({...}) })
+      // هنا نستخدم mailto كحل سريع:
+      const subject = encodeURIComponent('طلب/استفسار من ' + name);
+      const body = encodeURIComponent('الاسم: ' + name + '\\nالتواصل: ' + contact + '\\n\\n' + message);
+      window.location.href = `mailto:contact@uberfix.example.com?subject=${subject}&body=${body}`;
+      msgEl.textContent = "جارٍ فتح تطبيق البريد لإرسال الرسالة...";
+    }
+  </script>
+
+</body>
+</html>
