@@ -126,11 +126,11 @@ const IndexContent = () => {
     });
   }, [technicians, branchMarkers]);
 
-  const handleMarkerClick = (marker: MapMarker) => {
+  const handleMarkerClick = useCallback((marker: MapMarker) => {
     if (marker.type === 'technician') {
       setSelectedTechnician(marker.id);
     }
-  };
+  }, []);
 
   const isLoading = branchesLoading || techniciansLoading;
 
