@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Navigation, Loader2 } from 'lucide-react';
+import { Navigation, Loader2, Plus, Minus } from 'lucide-react';
 import type { MapMarker, ServiceType, TechnicianStatus } from '@/types/uberfix';
 import { SERVICE_LABELS, STATUS_LABELS } from '@/types/uberfix';
 import { getTechnicianIcon } from './TechnicianCard';
 import { useAllTechniciansTracking } from '@/hooks/useTechnicianTracking';
+import branchIcon from '@/assets/icons/branch.png';
+import customerPinIcon from '@/assets/icons/svg/location_customer_pin.svg';
 
-// Mapbox token from env
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 interface MapboxMapProps {
@@ -18,38 +19,33 @@ interface MapboxMapProps {
   isLoading?: boolean;
 }
 
-const MapboxMap = ({ 
-  branches, 
-  technicians, 
-  onMarkerClick, 
+const MapboxMap = ({
+  branches,
+  technicians,
+  onMarkerClick,
   selectedMarkerId,
-  isLoading 
+  isLoading,
 }: MapboxMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  
-  // Real-time technician tracking
+
   const { locations: liveLocations } = useAllTechniciansTracking(mapLoaded);
 
-  // Initialize map
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [31.2357, 30.0444], // Cairo center
+      center: [31.2357, 30.0444],
       zoom: 11,
-      attributionControl: false
+      attributionControl: false,
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
-    
-    map.current.on('load', () => {
-      setMapLoaded(true);
-    });
+    map.current.on('load', () => setMapLoaded(true));
 
     return () => {
       map.current?.remove();
@@ -57,182 +53,136 @@ const MapboxMap = ({
     };
   }, []);
 
-  // Clear existing markers
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
   }, []);
 
-  // Create marker element with custom technician icons
-  const createMarkerElement = useCallback((marker: MapMarker, isSelected: boolean) => {
+  // Direct icon placement — no hover, no decorations, no overlays
+  const createMarkerElement = useCallback((marker: MapMarker) => {
     const el = document.createElement('div');
-    el.className = 'marker-container';
-    
     const isTechnician = marker.type === 'technician';
-    const statusColor = marker.status === 'available' ? '#10B981' : 
-                       marker.status === 'busy' ? '#EF4444' : '#6B7280';
-    
-    // Use custom technician icon based on ID
-    const markerIcon = isTechnician 
-      ? getTechnicianIcon(marker.id)
-      : (marker.icon || '/branch-marker.png');
-    
-    el.innerHTML = `
-      <div class="relative cursor-pointer transition-transform duration-200 ${isSelected ? 'scale-125' : 'hover:scale-110'}">
-        <img 
-          src="${markerIcon}"
-          alt="${marker.name}"
-          class="w-12 h-12 object-contain drop-shadow-lg rounded-full ${isTechnician ? 'border-2 border-white shadow-lg' : ''}"
-          onerror="this.src='https://api.iconify.design/mdi:map-marker.svg?color=%230F4C81'"
-        />
-        ${isTechnician ? `
-          <div 
-            class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white animate-pulse"
-            style="background-color: ${statusColor}"
-          ></div>
-        ` : ''}
-      </div>
-    `;
+    const iconSrc = isTechnician ? getTechnicianIcon(marker.id) : branchIcon;
+    const size = isTechnician ? 36 : 40;
 
+    el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;`;
+    const img = document.createElement('img');
+    img.src = iconSrc;
+    img.alt = marker.name;
+    img.style.cssText = `width:100%;height:100%;object-fit:contain;display:block;`;
+    img.draggable = false;
+    el.appendChild(img);
     return el;
   }, []);
 
-  // Create popup content
   const createPopupContent = useCallback((marker: MapMarker) => {
     const isTechnician = marker.type === 'technician';
-    
     if (isTechnician) {
-      const statusText = STATUS_LABELS[marker.status as TechnicianStatus] || 'غير معروف';
-      const statusColor = marker.status === 'available' ? 'text-green-500' : 'text-red-500';
+      const statusText = STATUS_LABELS[marker.status as TechnicianStatus] || '';
+      const statusColor =
+        marker.status === 'available'
+          ? '#10B981'
+          : marker.status === 'busy'
+          ? '#F59E0B'
+          : '#6B7280';
       const stars = '★'.repeat(Math.floor(marker.rating || 5));
-      
       return `
-        <div class="p-3 min-w-[200px] font-cairo" dir="rtl">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-gray-900">${marker.name}</span>
-            <span class="text-yellow-500 text-sm">${stars}</span>
+        <div class="uf-popup" dir="rtl">
+          <div class="uf-popup-row">
+            <span class="uf-popup-name">${marker.name}</span>
+            <span class="uf-popup-stars">${stars}</span>
           </div>
-          <p class="text-sm text-blue-600 font-medium">${SERVICE_LABELS[marker.specialty as ServiceType] || marker.specialty}</p>
-          <p class="text-xs ${statusColor} mt-1">${statusText}</p>
-          <button 
-            class="w-full mt-3 py-2 rounded-lg text-white text-sm font-semibold"
-            style="background: linear-gradient(135deg, #D4A84B 0%, #E8C547 100%)"
-          >
-            طلب الخدمة
-          </button>
-        </div>
-      `;
-    } else {
-      return `
-        <div class="p-3 min-w-[180px] font-cairo" dir="rtl">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            <span class="text-xs text-gray-500">فرع تجاري</span>
-          </div>
-          <p class="font-bold text-gray-900">${marker.name}</p>
-          <p class="text-sm text-gray-600 mt-1">${marker.location}</p>
-          <div class="flex items-center gap-1 mt-2">
-            <span class="w-2 h-2 rounded-full bg-green-500"></span>
-            <span class="text-xs text-green-600">نشط</span>
-          </div>
-        </div>
-      `;
+          <div class="uf-popup-spec">${SERVICE_LABELS[marker.specialty as ServiceType] || ''}</div>
+          <div class="uf-popup-status" style="color:${statusColor}">● ${statusText}</div>
+        </div>`;
     }
+    return `
+      <div class="uf-popup" dir="rtl">
+        <div class="uf-popup-name">${marker.name}</div>
+        <div class="uf-popup-spec">${marker.location || ''}</div>
+        <div class="uf-popup-status" style="color:#10B981">● فرع نشط</div>
+      </div>`;
   }, []);
 
-  // Update markers when data changes or live locations update
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
-
     clearMarkers();
 
-    // Update technicians with live locations
     const updatedTechnicians = technicians.map((tech) => {
-      const liveLocation = liveLocations.get(tech.id);
-      if (liveLocation) {
-        return {
-          ...tech,
-          latitude: liveLocation.latitude,
-          longitude: liveLocation.longitude
-        };
-      }
-      return tech;
+      const live = liveLocations.get(tech.id);
+      return live
+        ? { ...tech, latitude: live.latitude, longitude: live.longitude }
+        : tech;
     });
 
-    const allMarkers = [...branches, ...updatedTechnicians];
-    
-    allMarkers.forEach((marker) => {
-      const isSelected = marker.id === selectedMarkerId;
-      const el = createMarkerElement(marker, isSelected);
-      
+    [...branches, ...updatedTechnicians].forEach((marker) => {
+      const el = createMarkerElement(marker);
       const popup = new mapboxgl.Popup({
-        offset: 25,
+        offset: 22,
         closeButton: false,
-        className: 'uberfix-popup'
+        className: 'uberfix-popup',
       }).setHTML(createPopupContent(marker));
 
-      const mapMarker = new mapboxgl.Marker(el)
+      const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([marker.longitude, marker.latitude])
         .setPopup(popup)
         .addTo(map.current!);
 
-      el.addEventListener('click', () => {
-        onMarkerClick?.(marker);
-      });
-
-      markersRef.current.push(mapMarker);
+      el.addEventListener('click', () => onMarkerClick?.(marker));
+      markersRef.current.push(m);
     });
-  }, [branches, technicians, mapLoaded, selectedMarkerId, liveLocations, clearMarkers, createMarkerElement, createPopupContent, onMarkerClick]);
+  }, [
+    branches,
+    technicians,
+    mapLoaded,
+    liveLocations,
+    clearMarkers,
+    createMarkerElement,
+    createPopupContent,
+    onMarkerClick,
+  ]);
 
-  // Fly to selected marker
   useEffect(() => {
     if (!map.current || !selectedMarkerId || !mapLoaded) return;
-
-    const allMarkers = [...branches, ...technicians];
-    const selectedMarker = allMarkers.find(m => m.id === selectedMarkerId);
-    
-    if (selectedMarker) {
+    const all = [...branches, ...technicians];
+    const sel = all.find((m) => m.id === selectedMarkerId);
+    if (sel) {
       map.current.flyTo({
-        center: [selectedMarker.longitude, selectedMarker.latitude],
+        center: [sel.longitude, sel.latitude],
         zoom: 14,
-        duration: 1000
+        duration: 900,
       });
     }
   }, [selectedMarkerId, branches, technicians, mapLoaded]);
 
-  // Get current location
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation || !map.current) return;
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { longitude, latitude } = position.coords;
+      map.current?.flyTo({ center: [longitude, latitude], zoom: 14, duration: 900 });
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { longitude, latitude } = position.coords;
-        map.current?.flyTo({
-          center: [longitude, latitude],
-          zoom: 14,
-          duration: 1000
-        });
+      userMarkerRef.current?.remove();
+      const el = document.createElement('div');
+      el.style.cssText = 'width:48px;height:56px;';
+      const img = document.createElement('img');
+      img.src = customerPinIcon;
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;';
+      el.appendChild(img);
 
-        // Add current location marker
-        new mapboxgl.Marker({ color: '#0F4C81' })
-          .setLngLat([longitude, latitude])
-          .addTo(map.current!);
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-      }
-    );
+      userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([longitude, latitude])
+        .addTo(map.current!);
+    });
   };
+
+  const zoom = (delta: number) => map.current?.zoomTo((map.current.getZoom() || 11) + delta);
 
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="w-full h-full" />
-      
-      {/* Loading overlay */}
+
       {(isLoading || !mapLoaded) && (
-        <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-20">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
             <span className="text-sm text-muted-foreground">جاري تحميل الخريطة...</span>
@@ -240,27 +190,41 @@ const MapboxMap = ({
         </div>
       )}
 
-      {/* Current Location Button */}
-      <button 
-        onClick={handleGetCurrentLocation}
-        className="absolute bottom-24 left-4 w-12 h-12 bg-card rounded-xl shadow-elevated flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors z-10"
-      >
-        <Navigation className="w-5 h-5" />
-      </button>
+      {/* Map controls — refined */}
+      <div className="absolute bottom-24 left-4 flex flex-col gap-2 z-10">
+        <button
+          onClick={handleGetCurrentLocation}
+          className="w-11 h-11 bg-card/95 backdrop-blur rounded-xl shadow-elevated flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground transition-all border border-border/50"
+          aria-label="موقعي"
+        >
+          <Navigation className="w-5 h-5" />
+        </button>
+        <div className="bg-card/95 backdrop-blur rounded-xl shadow-elevated border border-border/50 overflow-hidden flex flex-col">
+          <button onClick={() => zoom(1)} className="w-11 h-11 flex items-center justify-center hover:bg-muted transition-colors" aria-label="تكبير">
+            <Plus className="w-4 h-4" />
+          </button>
+          <div className="h-px bg-border/60" />
+          <button onClick={() => zoom(-1)} className="w-11 h-11 flex items-center justify-center hover:bg-muted transition-colors" aria-label="تصغير">
+            <Minus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
 
-      {/* Custom popup styles */}
       <style>{`
         .mapboxgl-popup-content {
           padding: 0;
           border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          box-shadow: 0 10px 30px rgba(15, 76, 129, 0.18);
+          border: 1px solid hsl(var(--border));
+          overflow: hidden;
         }
-        .mapboxgl-popup-tip {
-          border-top-color: white;
-        }
-        .font-cairo {
-          font-family: 'Cairo', sans-serif;
-        }
+        .mapboxgl-popup-tip { border-top-color: white; }
+        .uf-popup { padding: 10px 14px; min-width: 180px; font-family: 'Cairo', sans-serif; }
+        .uf-popup-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+        .uf-popup-name { font-weight: 700; color: #0f172a; font-size: 14px; }
+        .uf-popup-stars { color: #f59e0b; font-size: 12px; }
+        .uf-popup-spec { color: #2563eb; font-size: 12px; font-weight: 600; margin-top: 2px; }
+        .uf-popup-status { font-size: 11px; margin-top: 4px; font-weight: 500; }
       `}</style>
     </div>
   );
