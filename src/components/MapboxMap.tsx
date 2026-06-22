@@ -58,20 +58,26 @@ const MapboxMap = ({
     markersRef.current = [];
   }, []);
 
-  // Direct icon placement — no hover, no decorations, no overlays
+  // Teardrop pin marker: colored pin with icon inside white circle
   const createMarkerElement = useCallback((marker: MapMarker) => {
     const el = document.createElement('div');
     const isTechnician = marker.type === 'technician';
     const iconSrc = isTechnician ? getTechnicianIcon(marker.id) : branchIcon;
-    const size = isTechnician ? 36 : 40;
+    const pinColor = isTechnician ? '#1E3A8A' : '#F59E0B'; // blue for tech, orange for branch
+    const pinShadow = isTechnician ? 'rgba(30,58,138,.35)' : 'rgba(245,158,11,.35)';
+    const w = 44;
+    const h = 56;
 
-    el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;`;
-    const img = document.createElement('img');
-    img.src = iconSrc;
-    img.alt = marker.name;
-    img.style.cssText = `width:100%;height:100%;object-fit:contain;display:block;`;
-    img.draggable = false;
-    el.appendChild(img);
+    el.style.cssText = `width:${w}px;height:${h}px;cursor:pointer;position:relative;filter:drop-shadow(0 4px 6px ${pinShadow});`;
+    el.innerHTML = `
+      <svg viewBox="0 0 44 56" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <path d="M22 0C9.85 0 0 9.85 0 22c0 14.5 22 34 22 34s22-19.5 22-34C44 9.85 34.15 0 22 0z" fill="${pinColor}"/>
+        <circle cx="22" cy="21" r="15" fill="#ffffff"/>
+      </svg>
+      <div style="position:absolute;top:6px;left:7px;width:30px;height:30px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        <img src="${iconSrc}" alt="${marker.name}" style="width:${isTechnician ? '28px' : '22px'};height:${isTechnician ? '28px' : '22px'};object-fit:contain;display:block;" draggable="false"/>
+      </div>
+    `;
     return el;
   }, []);
 
@@ -79,30 +85,27 @@ const MapboxMap = ({
     const isTechnician = marker.type === 'technician';
     if (isTechnician) {
       const statusText = STATUS_LABELS[marker.status as TechnicianStatus] || '';
-      const statusColor =
-        marker.status === 'available'
-          ? '#10B981'
-          : marker.status === 'busy'
-          ? '#F59E0B'
-          : '#6B7280';
-      const stars = '★'.repeat(Math.floor(marker.rating || 5));
+      const isAvail = marker.status === 'available';
+      const statusColor = isAvail ? '#2563EB' : marker.status === 'busy' ? '#DC2626' : '#6B7280';
+      const stars = '★★★★★'.slice(0, Math.max(1, Math.floor(marker.rating || 5)));
+      const eta = isAvail ? `متاح بعد ${10 + (marker.name.length % 5) * 10} دقيقه` : statusText;
       return `
-        <div class="uf-popup" dir="rtl">
-          <div class="uf-popup-row">
-            <span class="uf-popup-name">${marker.name}</span>
-            <span class="uf-popup-stars">${stars}</span>
-          </div>
-          <div class="uf-popup-spec">${SERVICE_LABELS[marker.specialty as ServiceType] || ''}</div>
-          <div class="uf-popup-status" style="color:${statusColor}">● ${statusText}</div>
+        <div class="uf-pop" dir="rtl">
+          <div class="uf-pop-name">${marker.name}</div>
+          <div class="uf-pop-spec">${SERVICE_LABELS[marker.specialty as ServiceType] || ''}</div>
+          <div class="uf-pop-stars">${stars}</div>
+          <div class="uf-pop-status" style="color:${statusColor}">${eta}</div>
+          <button class="uf-pop-btn">طلب الخدمة</button>
         </div>`;
     }
     return `
-      <div class="uf-popup" dir="rtl">
-        <div class="uf-popup-name">${marker.name}</div>
-        <div class="uf-popup-spec">${marker.location || ''}</div>
-        <div class="uf-popup-status" style="color:#10B981">● فرع نشط</div>
+      <div class="uf-pop" dir="rtl">
+        <div class="uf-pop-name">${marker.name}</div>
+        <div class="uf-pop-spec" style="color:#F59E0B">فرع تجاري</div>
+        <div class="uf-pop-status" style="color:#10B981">● نشط الآن</div>
       </div>`;
   }, []);
+
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
