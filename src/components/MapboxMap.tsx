@@ -15,6 +15,7 @@ interface MapboxMapProps {
   branches: MapMarker[];
   technicians: MapMarker[];
   onMarkerClick?: (marker: MapMarker) => void;
+  onRequestService?: (marker: MapMarker) => void;
   selectedMarkerId?: string | null;
   isLoading?: boolean;
 }
