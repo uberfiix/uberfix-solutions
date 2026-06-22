@@ -110,7 +110,7 @@ const MapboxMap = ({
       const btn = wrapper.querySelector('.uf-card-btn') as HTMLButtonElement | null;
       btn?.addEventListener('click', (e) => {
         e.stopPropagation();
-        onMarkerClick?.(marker);
+        onRequestService?.(marker);
       });
       return wrapper;
     }
@@ -125,7 +125,7 @@ const MapboxMap = ({
       </div>
     `;
     return wrapper;
-  }, [onMarkerClick]);
+  }, [onRequestService]);
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
