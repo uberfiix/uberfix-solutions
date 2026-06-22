@@ -75,34 +75,55 @@ const MapboxMap = ({
     return el;
   }, []);
 
-  const createPopupContent = useCallback((marker: MapMarker) => {
+  const createTechnicianPopup = useCallback((marker: MapMarker) => {
     const isTechnician = marker.type === 'technician';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'uf-card-popup';
+    wrapper.dir = 'rtl';
+
     if (isTechnician) {
-      const statusText = STATUS_LABELS[marker.status as TechnicianStatus] || '';
+      const status = marker.status as TechnicianStatus;
+      const statusText = STATUS_LABELS[status] || '';
       const statusColor =
-        marker.status === 'available'
+        status === 'available'
           ? '#10B981'
-          : marker.status === 'busy'
+          : status === 'busy'
           ? '#F59E0B'
           : '#6B7280';
-      const stars = '★'.repeat(Math.floor(marker.rating || 5));
-      return `
-        <div class="uf-popup" dir="rtl">
-          <div class="uf-popup-row">
-            <span class="uf-popup-name">${marker.name}</span>
-            <span class="uf-popup-stars">${stars}</span>
-          </div>
-          <div class="uf-popup-spec">${SERVICE_LABELS[marker.specialty as ServiceType] || ''}</div>
-          <div class="uf-popup-status" style="color:${statusColor}">● ${statusText}</div>
-        </div>`;
+      const fullStars = 5;
+      const stars = '★'.repeat(fullStars);
+      const specialty = SERVICE_LABELS[marker.specialty as ServiceType] || marker.specialty || '';
+
+      wrapper.innerHTML = `
+        <div class="uf-card-name">${marker.name}</div>
+        <div class="uf-card-spec">${specialty}</div>
+        <div class="uf-card-stars">${stars}</div>
+        <div class="uf-card-status" style="color:${statusColor}">
+          <span class="uf-card-dot" style="background:${statusColor}"></span>
+          ${statusText}
+        </div>
+        <button class="uf-card-btn" type="button">طلب الخدمة</button>
+      `;
+
+      const btn = wrapper.querySelector('.uf-card-btn') as HTMLButtonElement | null;
+      btn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onMarkerClick?.(marker);
+      });
+      return wrapper;
     }
-    return `
-      <div class="uf-popup" dir="rtl">
-        <div class="uf-popup-name">${marker.name}</div>
-        <div class="uf-popup-spec">${marker.location || ''}</div>
-        <div class="uf-popup-status" style="color:#10B981">● فرع نشط</div>
-      </div>`;
-  }, []);
+
+    // Branch popup
+    wrapper.innerHTML = `
+      <div class="uf-card-name">${marker.name}</div>
+      <div class="uf-card-spec">${marker.location || ''}</div>
+      <div class="uf-card-status" style="color:#10B981">
+        <span class="uf-card-dot" style="background:#10B981"></span>
+        فرع نشط
+      </div>
+    `;
+    return wrapper;
+  }, [onMarkerClick]);
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
@@ -121,7 +142,7 @@ const MapboxMap = ({
         offset: 22,
         closeButton: false,
         className: 'uberfix-popup',
-      }).setHTML(createPopupContent(marker));
+      }).setDOMContent(createTechnicianPopup(marker));
 
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([marker.longitude, marker.latitude])
@@ -138,7 +159,7 @@ const MapboxMap = ({
     liveLocations,
     clearMarkers,
     createMarkerElement,
-    createPopupContent,
+    createTechnicianPopup,
     onMarkerClick,
   ]);
 
@@ -211,20 +232,92 @@ const MapboxMap = ({
       </div>
 
       <style>{`
+        .mapboxgl-popup {
+          z-index: 100;
+        }
         .mapboxgl-popup-content {
           padding: 0;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(15, 76, 129, 0.18);
-          border: 1px solid hsl(var(--border));
+          border-radius: 16px;
+          box-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.22);
+          border: 1px solid rgba(0, 0, 0, 0.08);
           overflow: hidden;
+          background: white;
+          font-family: 'Cairo', sans-serif;
         }
-        .mapboxgl-popup-tip { border-top-color: white; }
-        .uf-popup { padding: 10px 14px; min-width: 180px; font-family: 'Cairo', sans-serif; }
-        .uf-popup-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-        .uf-popup-name { font-weight: 700; color: #0f172a; font-size: 14px; }
-        .uf-popup-stars { color: #f59e0b; font-size: 12px; }
-        .uf-popup-spec { color: #2563eb; font-size: 12px; font-weight: 600; margin-top: 2px; }
-        .uf-popup-status { font-size: 11px; margin-top: 4px; font-weight: 500; }
+        .mapboxgl-popup-tip {
+          border-top-color: white;
+          filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06));
+        }
+        .uberfix-popup .mapboxgl-popup-content {
+          padding: 0 !important;
+        }
+        .uf-card-popup {
+          padding: 14px 16px;
+          min-width: 190px;
+          max-width: 220px;
+          direction: rtl;
+          text-align: right;
+          color: #0f172a;
+          font-family: 'Cairo', sans-serif;
+          box-sizing: border-box;
+        }
+        .uf-card-name {
+          font-size: 15px;
+          font-weight: 800;
+          line-height: 1.2;
+          margin-bottom: 2px;
+          color: #0f172a;
+        }
+        .uf-card-spec {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+          margin-top: 3px;
+        }
+        .uf-card-stars {
+          color: #f59e0b;
+          font-size: 13px;
+          margin-top: 6px;
+          letter-spacing: 1px;
+          line-height: 1;
+        }
+        .uf-card-status {
+          font-size: 11px;
+          margin-top: 6px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          line-height: 1;
+        }
+        .uf-card-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .uf-card-btn {
+          width: 100%;
+          margin-top: 11px;
+          padding: 8px 14px;
+          border: none;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: white;
+          font-family: 'Cairo', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+          transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .uf-card-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+        .uf-card-btn:active {
+          transform: translateY(0);
+        }
       `}</style>
     </div>
   );
