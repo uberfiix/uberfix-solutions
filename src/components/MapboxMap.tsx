@@ -24,6 +24,7 @@ const MapboxMap = ({
   branches,
   technicians,
   onMarkerClick,
+  onRequestService,
   selectedMarkerId,
   isLoading,
 }: MapboxMapProps) => {
