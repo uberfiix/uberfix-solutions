@@ -155,6 +155,7 @@ const IndexContent = () => {
                 branches={branchMarkers}
                 technicians={technicianMarkers}
                 onMarkerClick={handleMarkerClick}
+                onRequestService={handleRequestService}
                 selectedMarkerId={selectedTechnician}
                 isLoading={isLoading}
               />
