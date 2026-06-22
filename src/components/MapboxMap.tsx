@@ -216,19 +216,23 @@ const MapboxMap = ({
       <style>{`
         .mapboxgl-popup-content {
           padding: 0;
-          border-radius: 12px;
-          box-shadow: 0 10px 30px rgba(15, 76, 129, 0.18);
-          border: 1px solid hsl(var(--border));
+          border-radius: 14px;
+          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+          border: 1.5px solid #1f2937;
           overflow: hidden;
         }
-        .mapboxgl-popup-tip { border-top-color: white; }
-        .uf-popup { padding: 10px 14px; min-width: 180px; font-family: 'Cairo', sans-serif; }
-        .uf-popup-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-        .uf-popup-name { font-weight: 700; color: #0f172a; font-size: 14px; }
-        .uf-popup-stars { color: #f59e0b; font-size: 12px; }
-        .uf-popup-spec { color: #2563eb; font-size: 12px; font-weight: 600; margin-top: 2px; }
-        .uf-popup-status { font-size: 11px; margin-top: 4px; font-weight: 500; }
+        .mapboxgl-popup-tip { border-top-color: #1f2937; }
+        .uf-pop { padding: 12px 16px; min-width: 160px; text-align:center; font-family: 'Cairo', sans-serif; background:#fff; }
+        .uf-pop-name { font-weight: 800; color: #0f172a; font-size: 15px; }
+        .uf-pop-spec { color: #DC2626; font-weight: 700; font-size: 13px; margin-top: 2px; }
+        .uf-pop-stars { color: #F59E0B; font-size: 14px; letter-spacing: 2px; margin-top: 4px; }
+        .uf-pop-status { font-weight: 700; font-size: 12px; margin-top: 4px; }
+        .uf-pop-btn { margin-top: 10px; width: 100%; padding: 8px 12px; border-radius: 999px; border: 1.5px solid #1f2937;
+          background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%); color: #fff; font-weight: 800; font-size: 13px; cursor:pointer;
+          box-shadow: 0 3px 0 #1f2937; font-family:'Cairo',sans-serif; }
+        .uf-pop-btn:hover { filter: brightness(1.05); }
       `}</style>
+
     </div>
   );
 };
