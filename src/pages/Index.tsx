@@ -132,6 +132,12 @@ const IndexContent = () => {
     }
   }, []);
 
+  const handleRequestService = useCallback((marker: MapMarker) => {
+    if (marker.type === 'technician') {
+      navigate(`/new-request?technician=${marker.id}`);
+    }
+  }, [navigate]);
+
   const isLoading = branchesLoading || techniciansLoading;
 
   const renderTabContent = () => {
