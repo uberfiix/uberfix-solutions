@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, Users, Loader2, MapPin } from 'lucide-react';
+import { Search, Filter, Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import TechnicianCard, { Technician } from './TechnicianCard';
 import { useTechnicians } from '@/hooks/useTechnicians';
@@ -95,6 +95,7 @@ const TechniciansSidebar = ({
 }: TechniciansSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -150,83 +151,111 @@ const TechniciansSidebar = ({
   };
 
   return (
-    <aside className="w-80 bg-card border-l border-border flex flex-col h-full overflow-hidden shadow-card">
-      {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            <h2 className="font-bold text-foreground">الفنيين</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">
-              {availableCount} متاح
-            </span>
-            <span className="w-2 h-2 rounded-full bg-status-available animate-pulse" />
-          </div>
-        </div>
+    <aside
+      className={`relative bg-card border-l border-border flex flex-col h-full overflow-hidden shadow-card transition-[width] duration-300 ease-out ${
+        collapsed ? 'w-14' : 'w-80'
+      }`}
+    >
+      {/* Collapse toggle */}
+      <button
+        onClick={() => setCollapsed((c) => !c)}
+        className="absolute -left-3 top-6 z-20 w-6 h-12 bg-card border border-border rounded-l-lg shadow-card flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+        aria-label={collapsed ? 'فتح القائمة' : 'طي القائمة'}
+      >
+        {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+      </button>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="ابحث عن فني..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-10 pr-10 pl-10 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-          />
-          <button
-            onClick={() => setShowAvailableOnly(!showAvailableOnly)}
-            className={`absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors ${
-              showAvailableOnly
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Technicians List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground mt-2">
-              جاري التحميل...
+      {collapsed ? (
+        <div className="flex flex-col items-center gap-3 py-4 px-2">
+          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-card">
+            <Users className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div className="flex flex-col items-center gap-1 mt-1">
+            <span className="text-[10px] text-muted-foreground">متاح</span>
+            <span className="px-2 py-0.5 rounded-full bg-status-available/10 text-status-available text-xs font-bold">
+              {availableCount}
             </span>
           </div>
-        ) : filteredTechnicians.length === 0 ? (
-          <div className="text-center py-8">
-            <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">لا يوجد فنيين متاحين</p>
+          <div className="flex flex-col items-center gap-1 mt-1">
+            <span className="text-[10px] text-muted-foreground">الكل</span>
+            <span className="px-2 py-0.5 rounded-full bg-muted text-foreground text-xs font-bold">
+              {baseTechnicians.length}
+            </span>
           </div>
-        ) : (
-          filteredTechnicians.map((technician) => (
-            <TechnicianCard
-              key={technician.id}
-              technician={technician}
-              isSelected={selectedTechnicianId === technician.id}
-              onSelect={() =>
-                onSelectTechnician(
-                  selectedTechnicianId === technician.id ? null : technician.id
-                )
-              }
-              onRequestService={() => handleRequestService(technician.id)}
-            />
-          ))
-        )}
-      </div>
-
-      {/* Footer Stats */}
-      <div className="p-3 border-t border-border bg-muted/30">
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>إجمالي الفنيين: {baseTechnicians.length}</span>
-          <span>المتاحين: {availableCount}</span>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="p-4 border-b border-border bg-gradient-to-b from-primary/5 to-transparent">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+                  <Users className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <h2 className="font-bold text-foreground">الفنيين</h2>
+              </div>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-status-available/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-status-available animate-pulse" />
+                <span className="text-xs font-semibold text-status-available">{availableCount} متاح</span>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="ابحث عن فني..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-10 pr-10 pl-10 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+              <button
+                onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+                className={`absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md transition-colors ${
+                  showAvailableOnly ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                }`}
+                aria-label="إظهار المتاحين فقط"
+              >
+                <Filter className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground mt-2">جاري التحميل...</span>
+              </div>
+            ) : filteredTechnicians.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">لا يوجد فنيين متاحين</p>
+              </div>
+            ) : (
+              filteredTechnicians.map((technician) => (
+                <TechnicianCard
+                  key={technician.id}
+                  technician={technician}
+                  isSelected={selectedTechnicianId === technician.id}
+                  onSelect={() =>
+                    onSelectTechnician(
+                      selectedTechnicianId === technician.id ? null : technician.id
+                    )
+                  }
+                  onRequestService={() => handleRequestService(technician.id)}
+                />
+              ))
+            )}
+          </div>
+
+          <div className="p-3 border-t border-border bg-muted/30">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>إجمالي الفنيين: {baseTechnicians.length}</span>
+              <span>المتاحين: {availableCount}</span>
+            </div>
+          </div>
+        </>
+      )}
     </aside>
   );
 };
