@@ -66,69 +66,65 @@ const IndexContent = () => {
   }, [dbBranches]);
 
   const technicianMarkers = useMemo((): MapMarker[] => {
-    if (!technicians || technicians.length === 0) {
-      return [
-        {
-          id: 't1',
-          type: 'technician',
-          name: 'أحمد حسين',
-          specialty: 'plumbing',
-          location: 'المعادي',
-          latitude: 30.0444,
-          longitude: 31.2357,
-          status: 'available',
-          rating: 4.9,
-        },
-        {
-          id: 't2',
-          type: 'technician',
-          name: 'محمد سعيد',
-          specialty: 'electrical',
-          location: 'مصر الجديدة',
-          latitude: 30.09,
-          longitude: 31.34,
-          status: 'available',
-          rating: 4.8,
-        },
-        {
-          id: 't3',
-          type: 'technician',
-          name: 'خالد إبراهيم',
-          specialty: 'ac',
-          location: 'مدينة نصر',
-          latitude: 30.05,
-          longitude: 31.36,
-          status: 'busy',
-          rating: 4.7,
-        },
-        {
-          id: 't4',
-          type: 'technician',
-          name: 'عمر حسن',
-          specialty: 'carpentry',
-          location: 'المهندسين',
-          latitude: 30.06,
-          longitude: 31.2,
-          status: 'available',
-          rating: 4.6,
-        },
-      ];
-    }
+    // Source technicians (from DB or fallback mocks)
+    const sourceTechnicians =
+      technicians && technicians.length > 0
+        ? technicians.map((tech) => ({
+            id: tech.id,
+            name: tech.name,
+            specialty: tech.specialty as ServiceType,
+            status: tech.status as MapMarker['status'],
+            rating: Number(tech.rating),
+            latitude: tech.latitude ? Number(tech.latitude) : undefined,
+            longitude: tech.longitude ? Number(tech.longitude) : undefined,
+          }))
+        : [
+            { id: 't1', name: 'أحمد حسين', specialty: 'plumbing' as ServiceType, status: 'available' as const, rating: 4.9 },
+            { id: 't2', name: 'محمد سعيد', specialty: 'electrical' as ServiceType, status: 'available' as const, rating: 4.8 },
+            { id: 't3', name: 'خالد إبراهيم', specialty: 'ac' as ServiceType, status: 'busy' as const, rating: 4.7 },
+            { id: 't4', name: 'عمر حسن', specialty: 'carpentry' as ServiceType, status: 'available' as const, rating: 4.6 },
+            { id: 't5', name: 'ياسر عبد الرحمن', specialty: 'painting' as ServiceType, status: 'available' as const, rating: 4.5 },
+            { id: 't6', name: 'سامي طارق', specialty: 'electrical' as ServiceType, status: 'available' as const, rating: 4.7 },
+            { id: 't7', name: 'مصطفى علي', specialty: 'plumbing' as ServiceType, status: 'busy' as const, rating: 4.6 },
+            { id: 't8', name: 'كريم نبيل', specialty: 'ac' as ServiceType, status: 'available' as const, rating: 4.8 },
+          ];
 
-    return technicians
-      .filter((t) => t.latitude && t.longitude)
-      .map((tech) => ({
-        id: tech.id,
+    // Deterministic small offset so each technician sits near a branch but distinct
+    const hash = (s: string) => {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+      return Math.abs(h);
+    };
+
+    return sourceTechnicians.map((tech, idx) => {
+      if (tech.latitude && tech.longitude) {
+        return {
+          ...tech,
+          type: 'technician' as const,
+          location: '',
+          latitude: tech.latitude,
+          longitude: tech.longitude,
+        };
+      }
+      // Anchor to a branch deterministically
+      const branch = branchMarkers.length > 0
+        ? branchMarkers[hash(tech.id) % branchMarkers.length]
+        : { latitude: 30.0444, longitude: 31.2357 };
+
+      const h = hash(tech.id + idx);
+      // Offset: ~150-400m radius from branch
+      const dLat = (((h % 100) / 100) - 0.5) * 0.004;
+      const dLng = ((((h >> 7) % 100) / 100) - 0.5) * 0.004;
+
+      return {
+        ...tech,
         type: 'technician' as const,
-        name: tech.name,
-        specialty: tech.specialty as ServiceType,
         location: '',
-        latitude: Number(tech.latitude),
-        longitude: Number(tech.longitude),
-        status: tech.status as MapMarker['status'],
-        rating: Number(tech.rating),
-      }));
-  }, [technicians]);
+        latitude: branch.latitude + dLat,
+        longitude: branch.longitude + dLng,
+      };
+    });
+  }, [technicians, branchMarkers]);
 
   const handleMarkerClick = (marker: MapMarker) => {
     if (marker.type === 'technician') {
