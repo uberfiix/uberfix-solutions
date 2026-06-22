@@ -15,6 +15,7 @@ interface MapboxMapProps {
   branches: MapMarker[];
   technicians: MapMarker[];
   onMarkerClick?: (marker: MapMarker) => void;
+  onRequestService?: (marker: MapMarker) => void;
   selectedMarkerId?: string | null;
   isLoading?: boolean;
 }
@@ -23,6 +24,7 @@ const MapboxMap = ({
   branches,
   technicians,
   onMarkerClick,
+  onRequestService,
   selectedMarkerId,
   isLoading,
 }: MapboxMapProps) => {
@@ -58,54 +60,72 @@ const MapboxMap = ({
     markersRef.current = [];
   }, []);
 
-  // Teardrop pin marker: colored pin with icon inside white circle
+  // Direct icon placement — no hover, no decorations, no overlays
   const createMarkerElement = useCallback((marker: MapMarker) => {
     const el = document.createElement('div');
     const isTechnician = marker.type === 'technician';
     const iconSrc = isTechnician ? getTechnicianIcon(marker.id) : branchIcon;
-    const pinColor = isTechnician ? '#1E3A8A' : '#F59E0B'; // blue for tech, orange for branch
-    const pinShadow = isTechnician ? 'rgba(30,58,138,.35)' : 'rgba(245,158,11,.35)';
-    const w = 44;
-    const h = 56;
+    const size = isTechnician ? 36 : 40;
 
-    el.style.cssText = `width:${w}px;height:${h}px;cursor:pointer;position:relative;filter:drop-shadow(0 4px 6px ${pinShadow});`;
-    el.innerHTML = `
-      <svg viewBox="0 0 44 56" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
-        <path d="M22 0C9.85 0 0 9.85 0 22c0 14.5 22 34 22 34s22-19.5 22-34C44 9.85 34.15 0 22 0z" fill="${pinColor}"/>
-        <circle cx="22" cy="21" r="15" fill="#ffffff"/>
-      </svg>
-      <div style="position:absolute;top:6px;left:7px;width:30px;height:30px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-        <img src="${iconSrc}" alt="${marker.name}" style="width:${isTechnician ? '28px' : '22px'};height:${isTechnician ? '28px' : '22px'};object-fit:contain;display:block;" draggable="false"/>
-      </div>
-    `;
+    el.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;`;
+    const img = document.createElement('img');
+    img.src = iconSrc;
+    img.alt = marker.name;
+    img.style.cssText = `width:100%;height:100%;object-fit:contain;display:block;`;
+    img.draggable = false;
+    el.appendChild(img);
     return el;
   }, []);
 
-  const createPopupContent = useCallback((marker: MapMarker) => {
+  const createTechnicianPopup = useCallback((marker: MapMarker) => {
     const isTechnician = marker.type === 'technician';
-    if (isTechnician) {
-      const statusText = STATUS_LABELS[marker.status as TechnicianStatus] || '';
-      const isAvail = marker.status === 'available';
-      const statusColor = isAvail ? '#2563EB' : marker.status === 'busy' ? '#DC2626' : '#6B7280';
-      const stars = '★★★★★'.slice(0, Math.max(1, Math.floor(marker.rating || 5)));
-      const eta = isAvail ? `متاح بعد ${10 + (marker.name.length % 5) * 10} دقيقه` : statusText;
-      return `
-        <div class="uf-pop" dir="rtl">
-          <div class="uf-pop-name">${marker.name}</div>
-          <div class="uf-pop-spec">${SERVICE_LABELS[marker.specialty as ServiceType] || ''}</div>
-          <div class="uf-pop-stars">${stars}</div>
-          <div class="uf-pop-status" style="color:${statusColor}">${eta}</div>
-          <button class="uf-pop-btn">طلب الخدمة</button>
-        </div>`;
-    }
-    return `
-      <div class="uf-pop" dir="rtl">
-        <div class="uf-pop-name">${marker.name}</div>
-        <div class="uf-pop-spec" style="color:#F59E0B">فرع تجاري</div>
-        <div class="uf-pop-status" style="color:#10B981">● نشط الآن</div>
-      </div>`;
-  }, []);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'uf-card-popup';
+    wrapper.dir = 'rtl';
 
+    if (isTechnician) {
+      const status = marker.status as TechnicianStatus;
+      const statusText = STATUS_LABELS[status] || '';
+      const statusColor =
+        status === 'available'
+          ? '#10B981'
+          : status === 'busy'
+          ? '#F59E0B'
+          : '#6B7280';
+      const fullStars = 5;
+      const stars = '★'.repeat(fullStars);
+      const specialty = SERVICE_LABELS[marker.specialty as ServiceType] || marker.specialty || '';
+
+      wrapper.innerHTML = `
+        <div class="uf-card-name">${marker.name}</div>
+        <div class="uf-card-spec">${specialty}</div>
+        <div class="uf-card-stars">${stars}</div>
+        <div class="uf-card-status" style="color:${statusColor}">
+          <span class="uf-card-dot" style="background:${statusColor}"></span>
+          ${statusText}
+        </div>
+        <button class="uf-card-btn" type="button">طلب الخدمة</button>
+      `;
+
+      const btn = wrapper.querySelector('.uf-card-btn') as HTMLButtonElement | null;
+      btn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onRequestService?.(marker);
+      });
+      return wrapper;
+    }
+
+    // Branch popup
+    wrapper.innerHTML = `
+      <div class="uf-card-name">${marker.name}</div>
+      <div class="uf-card-spec">${marker.location || ''}</div>
+      <div class="uf-card-status" style="color:#10B981">
+        <span class="uf-card-dot" style="background:#10B981"></span>
+        فرع نشط
+      </div>
+    `;
+    return wrapper;
+  }, [onRequestService]);
 
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
@@ -124,7 +144,7 @@ const MapboxMap = ({
         offset: 22,
         closeButton: false,
         className: 'uberfix-popup',
-      }).setHTML(createPopupContent(marker));
+      }).setDOMContent(createTechnicianPopup(marker));
 
       const m = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([marker.longitude, marker.latitude])
@@ -141,7 +161,7 @@ const MapboxMap = ({
     liveLocations,
     clearMarkers,
     createMarkerElement,
-    createPopupContent,
+    createTechnicianPopup,
     onMarkerClick,
   ]);
 
@@ -214,25 +234,93 @@ const MapboxMap = ({
       </div>
 
       <style>{`
+        .mapboxgl-popup {
+          z-index: 100;
+        }
         .mapboxgl-popup-content {
           padding: 0;
-          border-radius: 14px;
-          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
-          border: 1.5px solid #1f2937;
+          border-radius: 16px;
+          box-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.22);
+          border: 1px solid rgba(0, 0, 0, 0.25);
           overflow: hidden;
+          background: white;
+          font-family: 'Cairo', sans-serif;
         }
-        .mapboxgl-popup-tip { border-top-color: #1f2937; }
-        .uf-pop { padding: 12px 16px; min-width: 160px; text-align:center; font-family: 'Cairo', sans-serif; background:#fff; }
-        .uf-pop-name { font-weight: 800; color: #0f172a; font-size: 15px; }
-        .uf-pop-spec { color: #DC2626; font-weight: 700; font-size: 13px; margin-top: 2px; }
-        .uf-pop-stars { color: #F59E0B; font-size: 14px; letter-spacing: 2px; margin-top: 4px; }
-        .uf-pop-status { font-weight: 700; font-size: 12px; margin-top: 4px; }
-        .uf-pop-btn { margin-top: 10px; width: 100%; padding: 8px 12px; border-radius: 999px; border: 1.5px solid #1f2937;
-          background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%); color: #fff; font-weight: 800; font-size: 13px; cursor:pointer;
-          box-shadow: 0 3px 0 #1f2937; font-family:'Cairo',sans-serif; }
-        .uf-pop-btn:hover { filter: brightness(1.05); }
+        .mapboxgl-popup-tip {
+          border-top-color: white;
+          filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.08));
+        }
+        .uberfix-popup .mapboxgl-popup-content {
+          padding: 0 !important;
+        }
+        .uf-card-popup {
+          padding: 14px 16px;
+          min-width: 190px;
+          max-width: 220px;
+          direction: rtl;
+          text-align: right;
+          color: #0f172a;
+          font-family: 'Cairo', sans-serif;
+          box-sizing: border-box;
+        }
+        .uf-card-name {
+          font-size: 15px;
+          font-weight: 800;
+          line-height: 1.2;
+          margin-bottom: 2px;
+          color: #0f172a;
+        }
+        .uf-card-spec {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+          margin-top: 3px;
+        }
+        .uf-card-stars {
+          color: #f59e0b;
+          font-size: 13px;
+          margin-top: 6px;
+          letter-spacing: 1px;
+          line-height: 1;
+        }
+        .uf-card-status {
+          font-size: 11px;
+          margin-top: 6px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          line-height: 1;
+        }
+        .uf-card-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .uf-card-btn {
+          width: 100%;
+          margin-top: 11px;
+          padding: 8px 14px;
+          border: none;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+          color: white;
+          font-family: 'Cairo', sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+          transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .uf-card-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+        .uf-card-btn:active {
+          transform: translateY(0);
+        }
       `}</style>
-
     </div>
   );
 };

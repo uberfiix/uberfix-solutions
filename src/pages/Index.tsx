@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { Loader2, Plus, LogIn, LogOut } from 'lucide-react';
@@ -126,11 +126,17 @@ const IndexContent = () => {
     });
   }, [technicians, branchMarkers]);
 
-  const handleMarkerClick = (marker: MapMarker) => {
+  const handleMarkerClick = useCallback((marker: MapMarker) => {
     if (marker.type === 'technician') {
       setSelectedTechnician(marker.id);
     }
-  };
+  }, []);
+
+  const handleRequestService = useCallback((marker: MapMarker) => {
+    if (marker.type === 'technician') {
+      navigate(`/new-request?technician=${marker.id}`);
+    }
+  }, [navigate]);
 
   const isLoading = branchesLoading || techniciansLoading;
 
@@ -149,6 +155,7 @@ const IndexContent = () => {
                 branches={branchMarkers}
                 technicians={technicianMarkers}
                 onMarkerClick={handleMarkerClick}
+                onRequestService={handleRequestService}
                 selectedMarkerId={selectedTechnician}
                 isLoading={isLoading}
               />
