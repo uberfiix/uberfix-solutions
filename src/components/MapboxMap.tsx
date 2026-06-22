@@ -239,7 +239,7 @@ const MapboxMap = ({
           padding: 0;
           border-radius: 16px;
           box-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.22);
-          border: 1px solid rgba(0, 0, 0, 0.15);
+          border: 1px solid rgba(0, 0, 0, 0.25);
           overflow: hidden;
           background: white;
           font-family: 'Cairo', sans-serif;
