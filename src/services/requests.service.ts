@@ -142,7 +142,7 @@ class RequestsService {
     status: OrderStatus
   ): Promise<boolean> {
     try {
-      const updates: Record<string, unknown> = { status };
+      const updates: { status: OrderStatus; started_at?: string; completed_at?: string } = { status };
 
       if (status === 'in_progress') {
         updates.started_at = new Date().toISOString();
