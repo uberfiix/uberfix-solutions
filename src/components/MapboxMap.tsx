@@ -239,14 +239,14 @@ const MapboxMap = ({
           padding: 0;
           border-radius: 16px;
           box-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.22);
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(0, 0, 0, 0.15);
           overflow: hidden;
           background: white;
           font-family: 'Cairo', sans-serif;
         }
         .mapboxgl-popup-tip {
           border-top-color: white;
-          filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06));
+          filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.08));
         }
         .uberfix-popup .mapboxgl-popup-content {
           padding: 0 !important;
