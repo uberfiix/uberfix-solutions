@@ -663,6 +663,7 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -671,6 +672,7 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -679,6 +681,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -1137,126 +1140,6 @@ export type Database = {
         }
         Relationships: []
       }
-      v_spatial_ref_sys: {
-        Row: {
-          auth_name: string | null
-          auth_srid: number | null
-          proj4text: string | null
-          srid: number | null
-          srtext: string | null
-        }
-        Insert: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Update: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Relationships: []
-      }
-      v_spatial_ref_sys_backup: {
-        Row: {
-          auth_name: string | null
-          auth_srid: number | null
-          proj4text: string | null
-          srid: number | null
-          srtext: string | null
-        }
-        Insert: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Update: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Relationships: []
-      }
-      v_spatial_ref_sys_backup_old: {
-        Row: {
-          auth_name: string | null
-          auth_srid: number | null
-          proj4text: string | null
-          srid: number | null
-          srtext: string | null
-        }
-        Insert: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Update: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Relationships: []
-      }
-      v_spatial_ref_sys_old: {
-        Row: {
-          auth_name: string | null
-          auth_srid: number | null
-          proj4text: string | null
-          srid: number | null
-          srtext: string | null
-        }
-        Insert: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Update: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Relationships: []
-      }
-      v_spatial_ref_sys_safe: {
-        Row: {
-          auth_name: string | null
-          auth_srid: number | null
-          proj4text: string | null
-          srid: number | null
-          srtext: string | null
-        }
-        Insert: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Update: {
-          auth_name?: string | null
-          auth_srid?: number | null
-          proj4text?: string | null
-          srid?: number | null
-          srtext?: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       _postgis_deprecate: {
@@ -1386,6 +1269,7 @@ export type Database = {
             }
             Returns: string
           }
+      check_request_rate_limit: { Args: { _user_id: string }; Returns: boolean }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
