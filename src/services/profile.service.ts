@@ -62,7 +62,7 @@ class ProfileService {
   async fetchUserAddresses(): Promise<UserAddress[]> {
     // In production, this would fetch from database
     // For now, return saved addresses from localStorage
-    const saved = localStorage.getItem('userAddresses');
+    const saved = sessionStorage.getItem('userAddresses');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -80,7 +80,7 @@ class ProfileService {
       id: `addr-${Date.now()}`,
     };
     addresses.push(newAddress);
-    localStorage.setItem('userAddresses', JSON.stringify(addresses));
+    sessionStorage.setItem('userAddresses', JSON.stringify(addresses));
     return newAddress;
   }
 
