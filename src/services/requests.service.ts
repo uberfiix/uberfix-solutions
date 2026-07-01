@@ -166,7 +166,7 @@ class RequestsService {
   prefetchForQuickRequest(): void {
     // Prefetch last used address and service type from localStorage
     const lastServiceType = localStorage.getItem('lastServiceType');
-    const lastAddress = localStorage.getItem('lastAddress');
+    const lastAddress = sessionStorage.getItem('lastAddress');
     
     if (lastServiceType) {
       cacheService.set('quick-request-service', lastServiceType, 10 * 60 * 1000);
@@ -178,7 +178,7 @@ class RequestsService {
 
   saveLastUsedData(serviceType: ServiceType, address: string): void {
     localStorage.setItem('lastServiceType', serviceType);
-    localStorage.setItem('lastAddress', address);
+    sessionStorage.setItem('lastAddress', address);
   }
 
   invalidateCache(userId: string): void {

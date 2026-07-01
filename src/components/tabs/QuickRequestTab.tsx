@@ -26,7 +26,7 @@ const QuickRequestTab = () => {
 
       // Load last used data
       const lastService = localStorage.getItem('lastServiceType') as ServiceType;
-      const lastAddress = localStorage.getItem('lastAddress');
+      const lastAddress = sessionStorage.getItem('lastAddress');
       if (lastService) setSelectedService(lastService);
       if (lastAddress) setAddress(lastAddress);
 
@@ -61,7 +61,7 @@ const QuickRequestTab = () => {
 
     // Save last used data
     localStorage.setItem('lastServiceType', selectedService);
-    localStorage.setItem('lastAddress', address);
+    sessionStorage.setItem('lastAddress', address);
 
     // Navigate to full request form
     navigate(`/new-request?service=${selectedService}&description=${encodeURIComponent(description)}`);
